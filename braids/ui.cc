@@ -47,12 +47,24 @@ void Ui::Init() {
   mode_ = MODE_SPLASH;
   setting_ = SETTING_OSCILLATOR_SHAPE;
   setting_index_ = 0;
+  quick_octave_ = false;
+  quick_octave_changed_ = false;
 }
 
 void Ui::Poll() {
   system_clock.Tick();  // Tick global ms counter.
   ++sub_clock_;
   encoder_.Debounce();
+
+  if (quick_octave_ && encoder_.released()) {
+    quick_octave_ = false;
+
+    if (quick_octave_changed_) {
+      settings.Save();
+      quick_octave_changed_ = false;
+    }
+  }
+
   if (encoder_.just_pressed()) {
     encoder_press_time_ = system_clock.milliseconds();
     inhibit_further_switch_events_ = false;
@@ -97,6 +109,13 @@ void Ui::RefreshDisplay() {
     
     case MODE_EDIT:
       {
+        if (quick_octave_) {
+          uint8_t octave = settings.GetValue(SETTING_PITCH_OCTAVE);
+          display_.Print(
+              settings.metadata(SETTING_PITCH_OCTAVE).strings[octave]);
+          break;
+        }
+
         uint8_t value = settings.GetValue(setting_);
         if (setting_ == SETTING_OSCILLATOR_SHAPE &&
             settings.meta_modulation()) {
@@ -137,6 +156,14 @@ void Ui::RefreshDisplay() {
 
 void Ui::OnLongClick() {
   switch (mode_) {
+    case MODE_EDIT:
+      if (setting_ != SETTING_OSCILLATOR_SHAPE) {
+        break;
+      }
+      quick_octave_ = true;
+      quick_octave_changed_ = false;
+      break;
+
     case MODE_MENU:
       if (setting_ == SETTING_CALIBRATION) {
         mode_ = MODE_CALIBRATION_STEP_1;
@@ -193,6 +220,21 @@ void Ui::OnClick() {
 }
 
 void Ui::OnIncrement(const Event& e) {
+  if (quick_octave_) {
+    int16_t value = settings.GetValue(SETTING_PITCH_OCTAVE);
+    value += e.data;
+
+    if (value < 0) {
+      value = 0;
+    } else if (value > 4) {
+      value = 4;
+    }
+
+    settings.SetValue(SETTING_PITCH_OCTAVE, value);
+    quick_octave_changed_ = true;
+    return;
+  }
+
   switch (mode_) {
 
     case MODE_EDIT:

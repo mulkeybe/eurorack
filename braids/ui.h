@@ -95,6 +95,9 @@ class Ui {
   
   uint32_t encoder_press_time_;
   bool inhibit_further_switch_events_;
+
+  bool quick_octave_;
+  bool quick_octave_changed_;
   
   int16_t value_;
   uint8_t sub_clock_;

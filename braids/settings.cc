@@ -64,6 +64,7 @@ const SettingsData kInitSettings = {
   0,  // AD->VCA
   0,  // Invert Encoder
   0,  // Quantizer root
+  0,  // MENU timeout: OFF
   
   50,
   15401,
@@ -305,6 +306,14 @@ const char* const brightness_values[] = {
     "\xff\xff\xff\xff",
 };
 
+const char* const menu_timeout_values[] = {
+    "OFF ",
+    "  5s ",
+    " 10s ",
+    " 15s ",
+    " 20s "
+};
+
 const char* const note_values[] = {
     "C",
     "Db",
@@ -343,9 +352,10 @@ const SettingMetadata Settings::metadata_[] = {
   { 0, 1, "\x8F""VCA", boolean_values },
   { 0, 1, "NVRT", boolean_values },
   { 0, 11, "ROOT", note_values },
+  { 0, 4, "MTO ", menu_timeout_values },
   { 0, 0, "CAL.", NULL },
   { 0, 0, "    ", NULL },  // Placeholder for CV tester
-  { 0, 0, "v1.9", NULL },  // Placeholder for version string
+  { 0, 0, "v2.0", NULL },  // Placeholder for version string
 };
 
 /* static */
@@ -370,6 +380,7 @@ const Setting Settings::settings_order_[] = {
   SETTING_VCO_DRIFT,
   SETTING_SIGNATURE,
   SETTING_BRIGHTNESS,
+  SETTING_MENU_TIMEOUT,
   SETTING_ENCODER_DIRECTION,
   SETTING_CALIBRATION,
   SETTING_CV_TESTER,

@@ -37,10 +37,13 @@ namespace braids {
 using namespace stmlib;
 
 const uint32_t kEncoderLongPressTime = 800;
+const uint32_t kQuickOctavePressTime = 250;
+const uint32_t kQuickOctaveDisplayDelay = 100;
 
 void Ui::Init() {
   encoder_.Init();
   display_.Init();
+  display_.set_brightness(settings.GetValue(SETTING_BRIGHTNESS) + 1);
   queue_.Init();
   sub_clock_ = 0;
   value_ = 0;
@@ -49,6 +52,12 @@ void Ui::Init() {
   setting_index_ = 0;
   quick_octave_ = false;
   quick_octave_changed_ = false;
+  quick_octave_display_refresh_ = false;
+  quick_octave_release_time_ = 0;
+  menu_entry_time_ = 0;
+  invisible_finger_return_setting_ = SETTING_OSCILLATOR_SHAPE;
+  invisible_finger_return_index_ = 0;
+  invisible_finger_active_ = false;
 }
 
 void Ui::Poll() {
@@ -58,6 +67,7 @@ void Ui::Poll() {
 
   if (quick_octave_ && encoder_.released()) {
     quick_octave_ = false;
+    quick_octave_release_time_ = system_clock.milliseconds();
 
     if (quick_octave_changed_) {
       settings.Save();
@@ -65,10 +75,29 @@ void Ui::Poll() {
     }
   }
 
+  if (!quick_octave_ &&
+      quick_octave_release_time_ != 0 &&
+      system_clock.milliseconds() - quick_octave_release_time_ >=
+          kQuickOctaveDisplayDelay) {
+    quick_octave_display_refresh_ = true;
+    quick_octave_release_time_ = 0;
+  }
+
   if (encoder_.just_pressed()) {
     encoder_press_time_ = system_clock.milliseconds();
     inhibit_further_switch_events_ = false;
   } 
+  if (!inhibit_further_switch_events_ &&
+      !quick_octave_ &&
+      mode_ == MODE_EDIT &&
+      setting_ == SETTING_OSCILLATOR_SHAPE &&
+      encoder_.pressed() &&
+      system_clock.milliseconds() - encoder_press_time_ >=
+          kQuickOctavePressTime) {
+    queue_.AddEvent(CONTROL_ENCODER_LONG_CLICK, 0, 0);
+    inhibit_further_switch_events_ = true;
+  }
+
   if (!inhibit_further_switch_events_) {
     if (encoder_.pressed()) {
       uint32_t duration = system_clock.milliseconds() - encoder_press_time_;
@@ -88,14 +117,48 @@ void Ui::Poll() {
     queue_.AddEvent(CONTROL_ENCODER, 0, increment);
   }
   
+
+  UpdateMenuTimeout();
   if ((sub_clock_ & 1) == 0) {
     display_.Refresh();
   }
 }
 
+void Ui::UpdateMenuTimeout() {
+
+  if (mode_ != MODE_MENU) return;
+
+  uint8_t timeout = settings.GetValue(SETTING_MENU_TIMEOUT);
+
+  if (timeout == 0) return;
+
+  static const uint32_t timeout_ms[] = {
+    0, 5000, 10000, 15000, 20000
+  };
+
+  if (system_clock.milliseconds() - menu_entry_time_ >= timeout_ms[timeout]) {
+    // Invisible Finger: remember the menu position and enter WAVE.
+    invisible_finger_return_setting_ = setting_;
+    invisible_finger_return_index_ = setting_index_;
+    invisible_finger_active_ = true;
+
+    settings.Save();
+
+    setting_ = SETTING_OSCILLATOR_SHAPE;
+    setting_index_ = 0;
+    mode_ = MODE_EDIT;
+
+    menu_entry_time_ = 0;
+  }
+
+}
+
 void Ui::FlushEvents() {
   queue_.Flush();
 }
+
+
+
 
 void Ui::RefreshDisplay() {
   switch (mode_) {
@@ -165,11 +228,9 @@ void Ui::OnLongClick() {
       break;
 
     case MODE_MENU:
+      menu_entry_time_ = system_clock.milliseconds();
       if (setting_ == SETTING_CALIBRATION) {
         mode_ = MODE_CALIBRATION_STEP_1;
-      } else if (setting_ == SETTING_VERSION) {
-        settings.Reset();
-        settings.Save();
       }
       break;
     
@@ -181,7 +242,16 @@ void Ui::OnLongClick() {
 void Ui::OnClick() {
   switch (mode_) {
     case MODE_EDIT:
-      mode_ = MODE_MENU;
+      if (invisible_finger_active_) {
+        mode_ = MODE_MENU;
+        setting_ = invisible_finger_return_setting_;
+        setting_index_ = invisible_finger_return_index_;
+        invisible_finger_active_ = false;
+        menu_entry_time_ = system_clock.milliseconds();
+      } else {
+        mode_ = MODE_MENU;
+        menu_entry_time_ = system_clock.milliseconds();
+      }
       break;
       
     case MODE_MENU:
@@ -248,6 +318,7 @@ void Ui::OnIncrement(const Event& e) {
       
     case MODE_MENU:
       {
+        menu_entry_time_ = system_clock.milliseconds();
         setting_index_ += e.data;
         if (setting_index_ < 0) {
           setting_index_ = 0;
@@ -265,6 +336,12 @@ void Ui::OnIncrement(const Event& e) {
 
 void Ui::DoEvents() {
   bool refresh_display_ = false;
+
+  if (quick_octave_display_refresh_) {
+    refresh_display_ = true;
+    quick_octave_display_refresh_ = false;
+  }
+
   while (queue_.available()) {
     Event e = queue_.PullEvent();
     if (e.control_type == CONTROL_ENCODER_CLICK) {
@@ -276,6 +353,7 @@ void Ui::DoEvents() {
     }
     refresh_display_ = true;
   }
+
   if (queue_.idle_time() > 1000) {
     refresh_display_ = true;
   }

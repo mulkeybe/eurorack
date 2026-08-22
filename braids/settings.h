@@ -170,7 +170,8 @@ enum Setting {
   SETTING_AD_VCA,
   SETTING_ENCODER_DIRECTION,
   SETTING_QUANTIZER_ROOT,
-  SETTING_LAST_EDITABLE_SETTING = SETTING_QUANTIZER_ROOT,
+  SETTING_MENU_TIMEOUT,
+  SETTING_LAST_EDITABLE_SETTING = SETTING_MENU_TIMEOUT,
   
   // Not settings per-se, but used for menu display!
   SETTING_CALIBRATION,
@@ -201,6 +202,7 @@ struct SettingsData {
   uint8_t ad_vca;
   uint8_t invert_encoder;
   uint8_t quantizer_root;
+  uint8_t menu_timeout;
   
   int32_t pitch_cv_offset;
   int32_t pitch_cv_scale;

@@ -98,7 +98,9 @@ class Ui {
 
   bool quick_octave_;
   bool quick_octave_changed_;
-  
+  bool quick_octave_display_refresh_;
+  uint32_t quick_octave_release_time_;
+
   int16_t value_;
   uint8_t sub_clock_;
   
@@ -117,6 +119,13 @@ class Ui {
   bool blink_;
   
   MacroOscillatorShape meta_shape_;
+
+  uint32_t menu_entry_time_;
+  Setting invisible_finger_return_setting_;
+  int16_t invisible_finger_return_index_;
+  bool invisible_finger_active_;
+
+  void UpdateMenuTimeout();
 
   DISALLOW_COPY_AND_ASSIGN(Ui);
 };

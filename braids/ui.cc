@@ -125,32 +125,38 @@ void Ui::Poll() {
 }
 
 void Ui::UpdateMenuTimeout() {
-
-  if (mode_ != MODE_MENU) return;
-
   uint8_t timeout = settings.GetValue(SETTING_MENU_TIMEOUT);
-
   if (timeout == 0) return;
 
-  static const uint32_t timeout_ms[] = {
-    0, 5000, 10000, 15000, 20000
-  };
+  const uint32_t now = system_clock.milliseconds();
+  if (now - menu_entry_time_ < 5000) return;
 
-  if (system_clock.milliseconds() - menu_entry_time_ >= timeout_ms[timeout]) {
-    // Invisible Finger: remember the menu position and enter WAVE.
+  // Invisible Finger: back out one menu level after 5 seconds.
+  if (mode_ == MODE_EDIT &&
+      setting_ != SETTING_OSCILLATOR_SHAPE) {
+    mode_ = MODE_MENU;
+    menu_entry_time_ = now;
+    return;
+  }
+
+  if (mode_ == MODE_MENU) {
+    // Remember the last main-menu position so the next encoder
+    // press from WAVE returns to the same setting.
     invisible_finger_return_setting_ = setting_;
     invisible_finger_return_index_ = setting_index_;
     invisible_finger_active_ = true;
 
-    settings.Save();
+    // ON* invokes the global save when the Invisible Finger
+    // exits the main settings screen. ON does not.
+    if (timeout == 2) {
+      settings.Save();
+    }
 
     setting_ = SETTING_OSCILLATOR_SHAPE;
     setting_index_ = 0;
     mode_ = MODE_EDIT;
-
     menu_entry_time_ = 0;
   }
-
 }
 
 void Ui::FlushEvents() {
@@ -312,6 +318,7 @@ void Ui::OnIncrement(const Event& e) {
         int16_t value = settings.GetValue(setting_);
         value = settings.metadata(setting_).Clip(value + e.data);
         settings.SetValue(setting_, value);
+        menu_entry_time_ = system_clock.milliseconds();
         display_.set_brightness(settings.GetValue(SETTING_BRIGHTNESS) + 1);
       }
       break;

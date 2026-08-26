@@ -308,10 +308,8 @@ const char* const brightness_values[] = {
 
 const char* const menu_timeout_values[] = {
     "OFF ",
-    "  5s ",
-    " 10s ",
-    " 15s ",
-    " 20s "
+    "ON  ",
+    "ON* "
 };
 
 const char* const note_values[] = {
@@ -352,7 +350,7 @@ const SettingMetadata Settings::metadata_[] = {
   { 0, 1, "\x8F""VCA", boolean_values },
   { 0, 1, "NVRT", boolean_values },
   { 0, 11, "ROOT", note_values },
-  { 0, 4, "MTO ", menu_timeout_values },
+  { 0, 2, "MTO ", menu_timeout_values },
   { 0, 0, "CAL.", NULL },
   { 0, 0, "    ", NULL },  // Placeholder for CV tester
   { 0, 0, "v2.0", NULL },  // Placeholder for version string

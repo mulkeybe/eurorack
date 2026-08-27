@@ -353,7 +353,7 @@ const SettingMetadata Settings::metadata_[] = {
   { 0, 2, "MTO ", menu_timeout_values },
   { 0, 0, "CAL.", NULL },
   { 0, 0, "    ", NULL },  // Placeholder for CV tester
-  { 0, 0, "v2.0", NULL },  // Placeholder for version string
+  { 0, 0, "2.01", NULL },  // Placeholder for version string
 };
 
 /* static */

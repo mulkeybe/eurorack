@@ -101,6 +101,9 @@ class Ui {
   bool quick_octave_display_refresh_;
   uint32_t quick_octave_release_time_;
 
+  bool mto_adjust_;
+  uint8_t mto_timeout_;
+
   int16_t value_;
   uint8_t sub_clock_;
   

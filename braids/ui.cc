@@ -54,6 +54,9 @@ void Ui::Init() {
   quick_octave_changed_ = false;
   quick_octave_display_refresh_ = false;
   quick_octave_release_time_ = 0;
+
+  mto_adjust_ = false;
+  mto_timeout_ = 0;
   menu_entry_time_ = 0;
   invisible_finger_return_setting_ = SETTING_OSCILLATOR_SHAPE;
   invisible_finger_return_index_ = 0;
@@ -64,6 +67,11 @@ void Ui::Poll() {
   system_clock.Tick();  // Tick global ms counter.
   ++sub_clock_;
   encoder_.Debounce();
+
+  if (mto_adjust_ && encoder_.released()) {
+    mto_adjust_ = false;
+    menu_entry_time_ = system_clock.milliseconds();
+  }
 
   if (quick_octave_ && encoder_.released()) {
     quick_octave_ = false;
@@ -89,12 +97,25 @@ void Ui::Poll() {
   } 
   if (!inhibit_further_switch_events_ &&
       !quick_octave_ &&
+      !mto_adjust_ &&
       mode_ == MODE_EDIT &&
       setting_ == SETTING_OSCILLATOR_SHAPE &&
       encoder_.pressed() &&
       system_clock.milliseconds() - encoder_press_time_ >=
           kQuickOctavePressTime) {
     queue_.AddEvent(CONTROL_ENCODER_LONG_CLICK, 0, 0);
+    inhibit_further_switch_events_ = true;
+  }
+
+  if (!inhibit_further_switch_events_ &&
+      !quick_octave_ &&
+      !mto_adjust_ &&
+      mode_ == MODE_EDIT &&
+      setting_ == SETTING_MENU_TIMEOUT &&
+      encoder_.pressed() &&
+      system_clock.milliseconds() - encoder_press_time_ >=
+          kQuickOctavePressTime) {
+    mto_adjust_ = true;
     inhibit_further_switch_events_ = true;
   }
 
@@ -129,7 +150,9 @@ void Ui::UpdateMenuTimeout() {
   if (timeout == 0) return;
 
   const uint32_t now = system_clock.milliseconds();
-  if (now - menu_entry_time_ < 5000) return;
+  const uint32_t timeout_duration =
+      5000 + static_cast<uint32_t>(mto_timeout_) * 5000;
+  if (now - menu_entry_time_ < timeout_duration) return;
 
   // Invisible Finger: back out one menu level after 5 seconds.
   if (mode_ == MODE_EDIT &&
@@ -182,6 +205,17 @@ void Ui::RefreshDisplay() {
           uint8_t octave = settings.GetValue(SETTING_PITCH_OCTAVE);
           display_.Print(
               settings.metadata(SETTING_PITCH_OCTAVE).strings[octave]);
+          break;
+        }
+
+        if (mto_adjust_) {
+          static const char* const mto_timeout_values[] = {
+            "5S  ",
+            "10S ",
+            "15S ",
+            "20S "
+          };
+          display_.Print(mto_timeout_values[mto_timeout_]);
           break;
         }
 
@@ -296,6 +330,21 @@ void Ui::OnClick() {
 }
 
 void Ui::OnIncrement(const Event& e) {
+  if (mto_adjust_) {
+    int16_t value = mto_timeout_;
+    value += e.data;
+
+    if (value < 0) {
+      value = 0;
+    } else if (value > 3) {
+      value = 3;
+    }
+
+    mto_timeout_ = value;
+    menu_entry_time_ = system_clock.milliseconds();
+    return;
+  }
+
   if (quick_octave_) {
     int16_t value = settings.GetValue(SETTING_PITCH_OCTAVE);
     value += e.data;

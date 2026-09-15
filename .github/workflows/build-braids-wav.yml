@@ -1,14 +1,14 @@
-name: Build Braids Firmware WAV
+name: Build Braids
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - benjaminam-octave-timeout
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -16,33 +16,70 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y gcc-arm-none-eabi binutils-arm-none-eabi python3 python3-numpy
+          sudo apt-get install -y \
+            python3 \
+            python3-venv \
+            python3-pip \
+            wget \
+            tar \
+            bzip2
 
-      - name: Build Braids and WAV
+      - name: Install ARM GCC 4.8.3
         run: |
-          make -f braids/makefile wav
+          wget -q \
+            https://launchpad.net/gcc-arm-embedded/4.8/4.8-2014-q3-update/+download/gcc-arm-none-eabi-4_8-2014q3-20140805-linux.tar.bz2 \
+            -O /tmp/gcc-arm-none-eabi.tar.bz2
 
-      - name: Verify WAV
+          echo "e33d7546de1e02844239c72b3ef5563f472fcd6b4637419d513770ae13f551c0  /tmp/gcc-arm-none-eabi.tar.bz2" \
+            | sha256sum -c -
+
+          sudo mkdir -p /usr/local/arm-4.8.3
+          sudo tar -xjf /tmp/gcc-arm-none-eabi.tar.bz2 \
+            --strip-components=1 \
+            -C /usr/local/arm-4.8.3
+
+          /usr/local/arm-4.8.3/bin/arm-none-eabi-g++ --version
+
+      - name: Create Python environment
         run: |
-          python3 - <<'PY'
-          import wave
-          path = "build/braids/braids.wav"
-          with wave.open(path, "rb") as w:
-              print("Channels:", w.getnchannels())
-              print("Sample width:", w.getsampwidth() * 8, "bit")
-              print("Sample rate:", w.getframerate(), "Hz")
-              print("Frames:", w.getnframes())
-              print("Duration:", w.getnframes() / w.getframerate(), "seconds")
-          PY
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --upgrade pip
+          .venv/bin/python -m pip install numpy==1.26.4
 
-      - name: Upload firmware files
+      - name: Show repository state
+        run: |
+          git status
+          git submodule status
+
+      - name: Build Braids
+        run: |
+          make -f braids/makefile
+
+      - name: Build WAV
+        run: |
+          PYTHONPATH="$PWD" .venv/bin/python \
+            stm_audio_bootloader/qpsk/encoder.py \
+            -s 48000 \
+            -b 12000 \
+            -c 6000 \
+            -p 256 \
+            build/braids/braids.bin
+
+      - name: Verify build outputs
+        run: |
+          ls -lh build/braids/
+          file build/braids/braids.bin
+          file build/braids/braids.hex
+          file build/braids/braids.wav
+
+      - name: Upload firmware artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: braids-mto-timeout
+          name: braids-firmware
           path: |
-            build/braids/braids.hex
             build/braids/braids.bin
+            build/braids/braids.hex
             build/braids/braids.wav

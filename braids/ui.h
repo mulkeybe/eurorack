@@ -129,7 +129,7 @@ class Ui {
   bool invisible_finger_active_;
 
   void UpdateMenuTimeout();
-
+  void TriggerMenuTimeout(bool forced);
   DISALLOW_COPY_AND_ASSIGN(Ui);
 };
 

@@ -57,6 +57,10 @@ jobs:
           export PATH="$PWD/.venv/bin:$PATH"
           make -f braids/makefile
 
+      - name: Inspect build output
+        run: |
+          find build -maxdepth 3 -type f -print
+
       - name: Build WAV
         run: |
           PYTHONPATH="$PWD" .venv/bin/python \

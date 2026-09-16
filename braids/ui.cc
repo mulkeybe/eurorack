@@ -145,16 +145,12 @@ void Ui::Poll() {
   }
 }
 
-void Ui::UpdateMenuTimeout() {
+void Ui::TriggerMenuTimeout(bool forced) {
   uint8_t timeout = settings.GetValue(SETTING_MENU_TIMEOUT);
-  if (timeout == 0) return;
+  if (timeout == 0 && !forced) return;
 
   const uint32_t now = system_clock.milliseconds();
-  const uint32_t timeout_duration =
-      5000 + static_cast<uint32_t>(mto_timeout_) * 5000;
-  if (now - menu_entry_time_ < timeout_duration) return;
 
-  // Invisible Finger: back out one menu level after 5 seconds.
   if (mode_ == MODE_EDIT &&
       setting_ != SETTING_OSCILLATOR_SHAPE) {
     mode_ = MODE_MENU;
@@ -163,14 +159,10 @@ void Ui::UpdateMenuTimeout() {
   }
 
   if (mode_ == MODE_MENU) {
-    // Remember the last main-menu position so the next encoder
-    // press from WAVE returns to the same setting.
     invisible_finger_return_setting_ = setting_;
     invisible_finger_return_index_ = setting_index_;
     invisible_finger_active_ = true;
 
-    // ON* invokes the global save when the Invisible Finger
-    // exits the main settings screen. ON does not.
     if (timeout == 2) {
       settings.Save();
     }
@@ -180,6 +172,18 @@ void Ui::UpdateMenuTimeout() {
     mode_ = MODE_EDIT;
     menu_entry_time_ = 0;
   }
+}
+
+void Ui::UpdateMenuTimeout() {
+  uint8_t timeout = settings.GetValue(SETTING_MENU_TIMEOUT);
+  if (timeout == 0) return;
+
+  const uint32_t now = system_clock.milliseconds();
+  const uint32_t timeout_duration =
+      5000 + static_cast<uint32_t>(mto_timeout_) * 5000;
+  if (now - menu_entry_time_ < timeout_duration) return;
+
+  TriggerMenuTimeout(false);
 }
 
 void Ui::FlushEvents() {
@@ -265,19 +269,8 @@ void Ui::OnLongClick() {
         quick_octave_ = true;
         quick_octave_changed_ = false;
       } else {
-        // Long press acts as a forced MTO: return to the last
-        // remembered top-level menu item, not its edit screen.
-        if (invisible_finger_active_) {
-          mode_ = MODE_MENU;
-          setting_ = invisible_finger_return_setting_;
-          setting_index_ = invisible_finger_return_index_;
-          invisible_finger_active_ = false;
-        } else {
-          // If MTO has not established a remembered position yet,
-          // return to the current setting's top-level menu item.
-          mode_ = MODE_MENU;
-        }
-        menu_entry_time_ = system_clock.milliseconds();
+        // Long press forces the same event used by MTO.
+        TriggerMenuTimeout(true);
       }
       break;
 

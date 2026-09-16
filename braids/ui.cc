@@ -280,11 +280,8 @@ void Ui::OnLongClick() {
         menu_entry_time_ = system_clock.milliseconds();
         mode_ = MODE_CALIBRATION_STEP_1;
       } else {
-        // Long press exits the menu back to WAVE.
-        setting_ = SETTING_OSCILLATOR_SHAPE;
-        setting_index_ = 0;
-        mode_ = MODE_EDIT;
-        menu_entry_time_ = 0;
+        // Force the existing MTO event, preserving the current menu cursor.
+        TriggerMenuTimeout(true);
       }
       break;
 

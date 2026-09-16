@@ -36,7 +36,7 @@ namespace braids {
 
 using namespace stmlib;
 
-const uint32_t kEncoderLongPressTime = 800;
+const uint32_t kEncoderLongPressTime = 1000;
 const uint32_t kQuickOctavePressTime = 250;
 const uint32_t kQuickOctaveDisplayDelay = 100;
 
@@ -260,20 +260,33 @@ void Ui::RefreshDisplay() {
 void Ui::OnLongClick() {
   switch (mode_) {
     case MODE_EDIT:
-      if (setting_ != SETTING_OSCILLATOR_SHAPE) {
-        break;
+      // WAVE keeps the existing Quick OCTV gesture.
+      if (setting_ == SETTING_OSCILLATOR_SHAPE) {
+        quick_octave_ = true;
+        quick_octave_changed_ = false;
+      } else {
+        // Long press exits ordinary setting edits back to WAVE.
+        setting_ = SETTING_OSCILLATOR_SHAPE;
+        setting_index_ = 0;
+        mode_ = MODE_EDIT;
+        menu_entry_time_ = 0;
       }
-      quick_octave_ = true;
-      quick_octave_changed_ = false;
       break;
 
     case MODE_MENU:
-      menu_entry_time_ = system_clock.milliseconds();
+      // CAL. keeps its existing long-press calibration behavior.
       if (setting_ == SETTING_CALIBRATION) {
+        menu_entry_time_ = system_clock.milliseconds();
         mode_ = MODE_CALIBRATION_STEP_1;
+      } else {
+        // Long press exits the menu back to WAVE.
+        setting_ = SETTING_OSCILLATOR_SHAPE;
+        setting_index_ = 0;
+        mode_ = MODE_EDIT;
+        menu_entry_time_ = 0;
       }
       break;
-    
+
     default:
       break;
   }

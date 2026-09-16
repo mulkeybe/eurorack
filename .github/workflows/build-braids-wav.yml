@@ -54,6 +54,7 @@ jobs:
 
       - name: Build Braids
         run: |
+          export PATH="$PWD/.venv/bin:$PATH"
           make -f braids/makefile
 
       - name: Build WAV

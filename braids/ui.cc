@@ -265,11 +265,19 @@ void Ui::OnLongClick() {
         quick_octave_ = true;
         quick_octave_changed_ = false;
       } else {
-        // Long press exits ordinary setting edits back to WAVE.
-        setting_ = SETTING_OSCILLATOR_SHAPE;
-        setting_index_ = 0;
-        mode_ = MODE_EDIT;
-        menu_entry_time_ = 0;
+        // Long press acts as a forced MTO: return to the last
+        // remembered top-level menu item, not its edit screen.
+        if (invisible_finger_active_) {
+          mode_ = MODE_MENU;
+          setting_ = invisible_finger_return_setting_;
+          setting_index_ = invisible_finger_return_index_;
+          invisible_finger_active_ = false;
+        } else {
+          // If MTO has not established a remembered position yet,
+          // return to the current setting's top-level menu item.
+          mode_ = MODE_MENU;
+        }
+        menu_entry_time_ = system_clock.milliseconds();
       }
       break;
 

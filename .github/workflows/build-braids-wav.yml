@@ -57,6 +57,13 @@ jobs:
           export PATH="$PWD/.venv/bin:$PATH"
           make -f braids/makefile
 
+      - name: Create BIN
+        run: |
+          /usr/local/arm-4.8.3/bin/arm-none-eabi-objcopy \
+            -O binary \
+            build/braids/braids.elf \
+            build/braids/braids.bin
+
       - name: Inspect build output
         run: |
           find build -maxdepth 3 -type f -print

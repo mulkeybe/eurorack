@@ -37,7 +37,7 @@ namespace braids {
 static const char str_dummy[] = "dummy";
 
 
-const char* string_table[] = {
+const char* const string_table[] = {
   str_dummy,
 };
 
@@ -1139,7 +1139,7 @@ const uint16_t lut_env_expo[] = {
 };
 
 
-const uint16_t* lookup_table_table[] = {
+const uint16_t* const lookup_table_table[] = {
   lut_resonator_coefficient,
   lut_resonator_scale,
   lut_svf_cutoff,
@@ -1226,7 +1226,7 @@ const int16_t lut_blowing_jet[] = {
 };
 
 
-const int16_t* lookup_table_signed_table[] = {
+const int16_t* const lookup_table_signed_table[] = {
   lut_blowing_jet,
 };
 
@@ -1320,7 +1320,7 @@ const uint32_t lut_env_portamento_increments[] = {
 };
 
 
-const uint32_t* lookup_table_hr_table[] = {
+const uint32_t* const lookup_table_hr_table[] = {
   lut_oscillator_increments,
   lut_oscillator_delays,
   lut_env_portamento_increments,
@@ -2532,7 +2532,7 @@ const int16_t wav_bandlimited_comb_14[] = {
 };
 
 
-const int16_t* waveform_table[] = {
+const int16_t* const waveform_table[] = {
   wav_formant_sine,
   wav_formant_square,
   wav_sine,
@@ -2823,7 +2823,7 @@ const int16_t ws_tri_fold[] = {
 };
 
 
-const int16_t* waveshaper_table[] = {
+const int16_t* const waveshaper_table[] = {
   ws_moderate_overdrive,
   ws_violent_overdrive,
   ws_sine_fold,
@@ -11424,7 +11424,7 @@ const uint8_t wt_code[] = {
 };
 
 
-const uint8_t* wt_table[] = {
+const uint8_t* const wt_table[] = {
   wt_waves,
   wt_map,
   wt_code,
@@ -11498,7 +11498,7 @@ const uint16_t chr_characters[] = {
 };
 
 
-const uint16_t* char_table[] = {
+const uint16_t* const char_table[] = {
   chr_characters,
 };
 

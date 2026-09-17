@@ -36,7 +36,7 @@ namespace braids {
 
 using namespace stmlib;
 
-const uint32_t kEncoderLongPressTime = 1000;
+const uint32_t kEncoderLongPressTime = 800;
 const uint32_t kQuickOctavePressTime = 250;
 const uint32_t kQuickOctaveDisplayDelay = 100;
 
@@ -153,8 +153,23 @@ void Ui::TriggerMenuTimeout(bool forced) {
 
   if (mode_ == MODE_EDIT &&
       setting_ != SETTING_OSCILLATOR_SHAPE) {
-    mode_ = MODE_MENU;
-    menu_entry_time_ = now;
+    if (forced) {
+      invisible_finger_return_setting_ = setting_;
+      invisible_finger_return_index_ = setting_index_;
+      invisible_finger_active_ = true;
+
+      if (timeout == 2) {
+        settings.Save();
+      }
+
+      setting_ = SETTING_OSCILLATOR_SHAPE;
+      setting_index_ = 0;
+      mode_ = MODE_EDIT;
+      menu_entry_time_ = 0;
+    } else {
+      mode_ = MODE_MENU;
+      menu_entry_time_ = now;
+    }
     return;
   }
 

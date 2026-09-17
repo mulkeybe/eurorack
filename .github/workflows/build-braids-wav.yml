@@ -1,4 +1,4 @@
-name: Build Braids
+name: Mutable Instruments Legacy Firmware Build
 
 on:
   push:

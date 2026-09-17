@@ -229,6 +229,15 @@ void Ui::OnLongClick() {
       if (setting_ == SETTING_OSCILLATOR_SHAPE) {
         quick_octave_ = true;
         quick_octave_changed_ = false;
+      } else {
+        invisible_finger_return_setting_ = setting_;
+        invisible_finger_return_index_ = setting_index_;
+        invisible_finger_active_ = true;
+        setting_ = SETTING_OSCILLATOR_SHAPE;
+        setting_index_ = 0;
+        settings_menu_ = false;
+        mode_ = MODE_EDIT;
+        menu_entry_time_ = 0;
       }
       break;
 

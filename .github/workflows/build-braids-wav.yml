@@ -3,7 +3,12 @@ name: Build Braids
 on:
   push:
     branches:
-      - benjaminam-octave-timeout
+      - master
+
+  pull_request:
+    branches:
+      - master
+
   workflow_dispatch:
 
 jobs:

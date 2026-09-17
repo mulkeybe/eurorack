@@ -1,6 +1,6 @@
 // Copyright 2012 Olivier Gillet.
 //
-// Author: Olivier Gillet (pichenettes@mutable-instruments.net)
+// Author: Olivier Gillet (ol.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -37,26 +37,69 @@ namespace braids {
 using namespace stmlib;
 
 const uint32_t kEncoderLongPressTime = 800;
+const uint32_t kQuickOctavePressTime = 250;
+const uint32_t kQuickOctaveDisplayDelay = 100;
 
 void Ui::Init() {
   encoder_.Init();
   display_.Init();
+  display_.set_brightness(settings.GetValue(SETTING_BRIGHTNESS) + 1);
   queue_.Init();
   sub_clock_ = 0;
   value_ = 0;
   mode_ = MODE_SPLASH;
   setting_ = SETTING_OSCILLATOR_SHAPE;
   setting_index_ = 0;
+  quick_octave_ = false;
+  quick_octave_changed_ = false;
+  quick_octave_display_refresh_ = false;
+  quick_octave_release_time_ = 0;
+  main_menu_index_ = 0;
+  settings_menu_ = false;
+  menu_entry_time_ = 0;
+  invisible_finger_return_setting_ = SETTING_OSCILLATOR_SHAPE;
+  invisible_finger_return_index_ = 0;
+  invisible_finger_active_ = false;
 }
 
 void Ui::Poll() {
   system_clock.Tick();  // Tick global ms counter.
   ++sub_clock_;
   encoder_.Debounce();
+
+  if (quick_octave_ && encoder_.released()) {
+    quick_octave_ = false;
+    quick_octave_release_time_ = system_clock.milliseconds();
+
+    if (quick_octave_changed_) {
+      settings.Save();
+      quick_octave_changed_ = false;
+    }
+  }
+
+  if (!quick_octave_ &&
+      quick_octave_release_time_ != 0 &&
+      system_clock.milliseconds() - quick_octave_release_time_ >=
+          kQuickOctaveDisplayDelay) {
+    quick_octave_display_refresh_ = true;
+    quick_octave_release_time_ = 0;
+  }
+
   if (encoder_.just_pressed()) {
     encoder_press_time_ = system_clock.milliseconds();
     inhibit_further_switch_events_ = false;
   } 
+  if (!inhibit_further_switch_events_ &&
+      !quick_octave_ &&
+      mode_ == MODE_EDIT &&
+      setting_ == SETTING_OSCILLATOR_SHAPE &&
+      encoder_.pressed() &&
+      system_clock.milliseconds() - encoder_press_time_ >=
+          kQuickOctavePressTime) {
+    queue_.AddEvent(CONTROL_ENCODER_LONG_CLICK, 0, 0);
+    inhibit_further_switch_events_ = true;
+  }
+
   if (!inhibit_further_switch_events_) {
     if (encoder_.pressed()) {
       uint32_t duration = system_clock.milliseconds() - encoder_press_time_;
@@ -76,13 +119,49 @@ void Ui::Poll() {
     queue_.AddEvent(CONTROL_ENCODER, 0, increment);
   }
   
+
+  UpdateMenuTimeout();
   if ((sub_clock_ & 1) == 0) {
     display_.Refresh();
   }
 }
 
+
+
 void Ui::FlushEvents() {
   queue_.Flush();
+}
+
+void Ui::UpdateMenuTimeout() {
+  uint8_t timeout = settings.GetValue(SETTING_MENU_TIMEOUT);
+  if (timeout == 0) return;
+
+  const uint32_t now = system_clock.milliseconds();
+  static const uint32_t timeout_ms[] = {
+    0, 3000, 5000, 10000, 15000
+  };
+
+  if (now - menu_entry_time_ < timeout_ms[timeout]) return;
+
+  if (mode_ == MODE_MENU) {
+    if (settings_menu_) {
+      // Settings always returns to CV TESTER.
+      invisible_finger_return_setting_ = SETTING_CV_TESTER;
+      invisible_finger_return_index_ = 13;
+    } else {
+      // Main Menu returns to its current position.
+      invisible_finger_return_setting_ = setting_;
+      invisible_finger_return_index_ = setting_index_;
+    }
+
+    invisible_finger_active_ = true;
+
+    setting_ = SETTING_OSCILLATOR_SHAPE;
+    setting_index_ = 0;
+    settings_menu_ = false;
+    mode_ = MODE_EDIT;
+    menu_entry_time_ = 0;
+  }
 }
 
 void Ui::RefreshDisplay() {
@@ -97,6 +176,13 @@ void Ui::RefreshDisplay() {
     
     case MODE_EDIT:
       {
+        if (quick_octave_) {
+          uint8_t octave = settings.GetValue(SETTING_PITCH_OCTAVE);
+          display_.Print(
+              settings.metadata(SETTING_PITCH_OCTAVE).strings[octave]);
+          break;
+        }
+
         uint8_t value = settings.GetValue(setting_);
         if (setting_ == SETTING_OSCILLATOR_SHAPE &&
             settings.meta_modulation()) {
@@ -108,7 +194,9 @@ void Ui::RefreshDisplay() {
       
     case MODE_MENU:
       {
-        if (setting_ == SETTING_CV_TESTER) {
+        if (settings_menu_ && setting_index_ == -1) {
+          display_.Print("BACK");
+        } else if (setting_ == SETTING_CV_TESTER) {
           char text[] = "    ";
           if (!blink_) {
             for (uint8_t i = 0; i < kDisplayWidth; ++i) {
@@ -137,15 +225,37 @@ void Ui::RefreshDisplay() {
 
 void Ui::OnLongClick() {
   switch (mode_) {
+    case MODE_EDIT:
+      if (setting_ == SETTING_OSCILLATOR_SHAPE) {
+        quick_octave_ = true;
+        quick_octave_changed_ = false;
+      }
+      break;
+
     case MODE_MENU:
+      menu_entry_time_ = system_clock.milliseconds();
+
       if (setting_ == SETTING_CALIBRATION) {
         mode_ = MODE_CALIBRATION_STEP_1;
       } else if (setting_ == SETTING_VERSION) {
         settings.Reset();
         settings.Save();
+      } else {
+        invisible_finger_return_setting_ = settings_menu_
+            ? SETTING_CV_TESTER
+            : setting_;
+        invisible_finger_return_index_ = settings_menu_
+            ? 13
+            : setting_index_;
+        invisible_finger_active_ = true;
+        setting_ = SETTING_OSCILLATOR_SHAPE;
+        setting_index_ = 0;
+        settings_menu_ = false;
+        mode_ = MODE_EDIT;
+        menu_entry_time_ = 0;
       }
       break;
-    
+
     default:
       break;
   }
@@ -154,11 +264,34 @@ void Ui::OnLongClick() {
 void Ui::OnClick() {
   switch (mode_) {
     case MODE_EDIT:
-      mode_ = MODE_MENU;
+      if (invisible_finger_active_) {
+        mode_ = MODE_MENU;
+        setting_ = invisible_finger_return_setting_;
+        setting_index_ = invisible_finger_return_index_;
+        settings_menu_ = false;
+        invisible_finger_active_ = false;
+        menu_entry_time_ = system_clock.milliseconds();
+      } else {
+        mode_ = MODE_MENU;
+        menu_entry_time_ = system_clock.milliseconds();
+      }
       break;
-      
+
     case MODE_MENU:
-      if (setting_ <= SETTING_LAST_EDITABLE_SETTING) {
+      if (settings_menu_ && setting_index_ == -1) {
+        settings_menu_ = false;
+        setting_index_ = main_menu_index_;
+        setting_ = settings.setting_at_index(setting_index_, false);
+        mode_ = MODE_MENU;
+        menu_entry_time_ = system_clock.milliseconds();
+      } else if (!settings_menu_ && setting_ == SETTING_CV_TESTER) {
+        main_menu_index_ = setting_index_;
+        settings_menu_ = true;
+        setting_index_ = 0;  // TSRC
+        setting_ = settings.setting_at_index(setting_index_, true);
+        mode_ = MODE_MENU;
+        menu_entry_time_ = system_clock.milliseconds();
+      } else if (setting_ <= SETTING_LAST_EDITABLE_SETTING) {
         mode_ = MODE_EDIT;
         if (setting_ == SETTING_OSCILLATOR_SHAPE) {
           settings.Save();
@@ -167,14 +300,14 @@ void Ui::OnClick() {
         mode_ = MODE_SPLASH;
       }
       break;
-      
+
     case MODE_CALIBRATION_STEP_1:
       adc_code_c2_ = cv_[2];
       adc_code_min_[0] = cv_[0];
       adc_code_min_[1] = cv_[1];
       mode_ = MODE_CALIBRATION_STEP_2;
       break;
-      
+
     case MODE_CALIBRATION_STEP_2:
       settings.Calibrate(
           adc_code_c2_,
@@ -185,14 +318,30 @@ void Ui::OnClick() {
           adc_code_min_[1],
           cv_[1]);
       mode_ = MODE_MENU;
+      menu_entry_time_ = system_clock.milliseconds();
       break;
-      
+
     default:
       break;
   }
 }
 
 void Ui::OnIncrement(const Event& e) {
+  if (quick_octave_) {
+    int16_t value = settings.GetValue(SETTING_PITCH_OCTAVE);
+    value += e.data;
+
+    if (value < 0) {
+      value = 0;
+    } else if (value > 4) {
+      value = 4;
+    }
+
+    settings.SetValue(SETTING_PITCH_OCTAVE, value);
+    quick_octave_changed_ = true;
+    return;
+  }
+
   switch (mode_) {
 
     case MODE_EDIT:
@@ -200,19 +349,38 @@ void Ui::OnIncrement(const Event& e) {
         int16_t value = settings.GetValue(setting_);
         value = settings.metadata(setting_).Clip(value + e.data);
         settings.SetValue(setting_, value);
+        menu_entry_time_ = system_clock.milliseconds();
         display_.set_brightness(settings.GetValue(SETTING_BRIGHTNESS) + 1);
       }
       break;
       
     case MODE_MENU:
       {
+        const int16_t menu_size = settings_menu_ ? 10 : 14;
+        menu_entry_time_ = system_clock.milliseconds();
         setting_index_ += e.data;
-        if (setting_index_ < 0) {
-          setting_index_ = 0;
-        } else if (setting_index_ >= SETTING_LAST) {
-          setting_index_ = SETTING_LAST - 1;
+
+        if (settings_menu_) {
+          if (setting_index_ < -1) {
+            setting_index_ = -1;
+          } else if (setting_index_ >= menu_size) {
+            setting_index_ = menu_size - 1;
+          }
+        } else {
+          while (setting_index_ < 0) {
+            setting_index_ += menu_size;
+          }
+          while (setting_index_ >= menu_size) {
+            setting_index_ -= menu_size;
+          }
+          main_menu_index_ = setting_index_;
         }
-        setting_ = settings.setting_at_index(setting_index_);
+
+        if (settings_menu_ && setting_index_ == -1) {
+          setting_ = SETTING_CV_TESTER;
+        } else {
+          setting_ = settings.setting_at_index(setting_index_, settings_menu_);
+        }
       }
       break;
       
@@ -223,6 +391,11 @@ void Ui::OnIncrement(const Event& e) {
 
 void Ui::DoEvents() {
   bool refresh_display_ = false;
+
+  if (quick_octave_display_refresh_) {
+    refresh_display_ = true;
+    quick_octave_display_refresh_ = false;
+  }
   while (queue_.available()) {
     Event e = queue_.PullEvent();
     if (e.control_type == CONTROL_ENCODER_CLICK) {

@@ -1,6 +1,6 @@
 // Copyright 2012 Olivier Gillet.
 //
-// Author: Olivier Gillet (pichenettes@mutable-instruments.net)
+// Author: Olivier Gillet (ol.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -170,7 +170,8 @@ enum Setting {
   SETTING_AD_VCA,
   SETTING_ENCODER_DIRECTION,
   SETTING_QUANTIZER_ROOT,
-  SETTING_LAST_EDITABLE_SETTING = SETTING_QUANTIZER_ROOT,
+  SETTING_MENU_TIMEOUT,
+  SETTING_LAST_EDITABLE_SETTING = SETTING_MENU_TIMEOUT,
   
   // Not settings per-se, but used for menu display!
   SETTING_CALIBRATION,
@@ -201,6 +202,7 @@ struct SettingsData {
   uint8_t ad_vca;
   uint8_t invert_encoder;
   uint8_t quantizer_root;
+  uint8_t menu_timeout;
   
   int32_t pitch_cv_offset;
   int32_t pitch_cv_scale;
@@ -365,8 +367,8 @@ class Settings {
     return metadata_[setting];
   }
 
-  static const Setting setting_at_index(int16_t index) {
-    return settings_order_[index];
+  static const Setting setting_at_index(int16_t index, bool settings_menu) {
+    return settings_menu ? settings_menu_order_[index] : main_menu_order_[index];
   }
   
  private:
@@ -375,7 +377,8 @@ class Settings {
   uint16_t version_token_;
   
   static const SettingMetadata metadata_[SETTING_LAST];
-  static const Setting settings_order_[SETTING_LAST];
+  static const Setting main_menu_order_[SETTING_LAST];
+  static const Setting settings_menu_order_[SETTING_LAST];
 
   DISALLOW_COPY_AND_ASSIGN(Settings);
 };

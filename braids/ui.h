@@ -1,6 +1,6 @@
 // Copyright 2012 Olivier Gillet.
 //
-// Author: Olivier Gillet (pichenettes@mutable-instruments.net)
+// Author: Olivier Gillet (ol.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -89,18 +89,30 @@ class Ui {
   void OnIncrement(const stmlib::Event& event);
   void OnClick();
   void OnLongClick();
+  void UpdateMenuTimeout();
   void RefreshDisplay();
 
   stmlib::EventQueue<16> queue_;
   
   uint32_t encoder_press_time_;
   bool inhibit_further_switch_events_;
+
+  bool quick_octave_;
+  bool quick_octave_changed_;
+  bool quick_octave_display_refresh_;
+  uint32_t quick_octave_release_time_;
   
   int16_t value_;
   uint8_t sub_clock_;
   
   UiMode mode_;
   int16_t setting_index_;
+  int16_t main_menu_index_;
+  bool settings_menu_;
+  uint32_t menu_entry_time_;
+  Setting invisible_finger_return_setting_;
+  int16_t invisible_finger_return_index_;
+  bool invisible_finger_active_;
   Setting setting_;
   
   Display display_;

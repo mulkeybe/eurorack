@@ -1,6 +1,6 @@
 // Copyright 2012 Olivier Gillet.
 //
-// Author: Olivier Gillet (pichenettes@mutable-instruments.net)
+// Author: Olivier Gillet (ol.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -64,6 +64,7 @@ const SettingsData kInitSettings = {
   0,  // AD->VCA
   0,  // Invert Encoder
   0,  // Quantizer root
+  2,  // Menu timeout: 5s
   
   50,
   15401,
@@ -321,8 +322,16 @@ const char* const note_values[] = {
 };
 
 /* static */
+const char* const menu_timeout_values[] = {
+  "OFF ",
+  "3s  ",
+  "5s  ",
+  "10s ",
+  "15s ",
+};
+
 const SettingMetadata Settings::metadata_[] = {
-  { 0, MACRO_OSC_SHAPE_LAST - 1, "WAVE", algo_values },
+  { 0, MACRO_OSC_SHAPE_LAST - 1, "WAV*", algo_values },
   { 0, RESOLUTION_LAST - 1, "BITS", bits_values },
   { 0, SAMPLE_RATE_LAST - 1, "RATE", rates_values },
   { 0, 15, "\x8F""TIM", zero_to_fifteen_values },
@@ -339,40 +348,44 @@ const SettingMetadata Settings::metadata_[] = {
   { 0, 15, "\x8F""ATT", zero_to_fifteen_values },
   { 0, 15, "\x8F""DEC", zero_to_fifteen_values },
   { 0, 15, "\x8F""FM ", zero_to_fifteen_values },
-  { 0, 15, "\x8F""COL", zero_to_fifteen_values },
+  { 0, 15, "COLR", zero_to_fifteen_values },
   { 0, 1, "\x8F""VCA", boolean_values },
   { 0, 1, "NVRT", boolean_values },
   { 0, 11, "ROOT", note_values },
+  { 0, 4, "MTO ", menu_timeout_values },
   { 0, 0, "CAL.", NULL },
   { 0, 0, "    ", NULL },  // Placeholder for CV tester
-  { 0, 0, "v1.9", NULL },  // Placeholder for version string
+  { 0, 0, "v201", NULL },  // Placeholder for version string
 };
 
 /* static */
-const Setting Settings::settings_order_[] = {
+const Setting Settings::main_menu_order_[] = {
   SETTING_OSCILLATOR_SHAPE,
+  SETTING_AD_VCA,
+  SETTING_AD_ATTACK,
+  SETTING_AD_DECAY,
+  SETTING_QUANTIZER_SCALE,
+  SETTING_QUANTIZER_ROOT,
   SETTING_META_MODULATION,
   SETTING_RESOLUTION,
   SETTING_SAMPLE_RATE,
-  SETTING_TRIG_SOURCE,
-  SETTING_TRIG_DELAY,
-  SETTING_AD_ATTACK,
-  SETTING_AD_DECAY,
+  SETTING_SIGNATURE,
   SETTING_AD_FM,
   SETTING_AD_TIMBRE,
   SETTING_AD_COLOR,
-  SETTING_AD_VCA,
+  SETTING_CV_TESTER,
+};
+
+const Setting Settings::settings_menu_order_[] = {
+  SETTING_TRIG_SOURCE,
+  SETTING_TRIG_DELAY,
   SETTING_PITCH_RANGE,
-  SETTING_PITCH_OCTAVE,
-  SETTING_QUANTIZER_SCALE,
-  SETTING_QUANTIZER_ROOT,
   SETTING_VCO_FLATTEN,
   SETTING_VCO_DRIFT,
-  SETTING_SIGNATURE,
   SETTING_BRIGHTNESS,
+  SETTING_MENU_TIMEOUT,
   SETTING_ENCODER_DIRECTION,
   SETTING_CALIBRATION,
-  SETTING_CV_TESTER,
   SETTING_VERSION,
 };
 

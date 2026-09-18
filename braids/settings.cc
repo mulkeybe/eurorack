@@ -353,9 +353,9 @@ const SettingMetadata Settings::metadata_[] = {
   { 0, 1, "NVRT", boolean_values },
   { 0, 11, "ROOT", note_values },
   { 0, 4, "MTO ", menu_timeout_values },
-  { 0, 0, "    ", NULL },  // Placeholder for CV tester
   { 0, 0, "CAL.", NULL },
-  { 0, 0, "v201", NULL },  // Placeholder for version string
+  { 0, 0, "    ", NULL },  // Placeholder for CV tester
+  { 0, 0, "V201", NULL },  // Placeholder for version string
   { 0, 0, "+SET", NULL },   // Settings menu
 };
 

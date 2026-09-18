@@ -72,7 +72,6 @@ void Ui::Poll() {
     quick_octave_release_time_ = system_clock.milliseconds();
 
     if (quick_octave_changed_) {
-      settings.Save();
       quick_octave_changed_ = false;
     }
   }
@@ -143,7 +142,7 @@ void Ui::UpdateMenuTimeout() {
 
   if (now - menu_entry_time_ < timeout_ms[timeout]) return;
 
-  if (mode_ == MODE_MENU) {
+  if (mode_ == MODE_MENU || mode_ == MODE_EDIT) {
     if (settings_menu_) {
       // Settings always returns to CV TESTER.
       invisible_finger_return_setting_ = SETTING_CV_TESTER;
@@ -230,8 +229,12 @@ void Ui::OnLongClick() {
         quick_octave_ = true;
         quick_octave_changed_ = false;
       } else {
-        invisible_finger_return_setting_ = setting_;
-        invisible_finger_return_index_ = setting_index_;
+        invisible_finger_return_setting_ = settings_menu_
+            ? SETTING_CV_TESTER
+            : setting_;
+        invisible_finger_return_index_ = settings_menu_
+            ? 13
+            : setting_index_;
         invisible_finger_active_ = true;
         setting_ = SETTING_OSCILLATOR_SHAPE;
         setting_index_ = 0;
@@ -376,11 +379,10 @@ void Ui::OnIncrement(const Event& e) {
             setting_index_ = menu_size - 1;
           }
         } else {
-          while (setting_index_ < 0) {
-            setting_index_ += menu_size;
-          }
-          while (setting_index_ >= menu_size) {
-            setting_index_ -= menu_size;
+          if (setting_index_ < 0) {
+            setting_index_ = 0;
+          } else if (setting_index_ >= menu_size) {
+            setting_index_ = menu_size - 1;
           }
           main_menu_index_ = setting_index_;
         }

@@ -280,6 +280,9 @@ void Ui::OnClick() {
         mode_ = MODE_MENU;
         setting_ = invisible_finger_return_setting_;
         setting_index_ = invisible_finger_return_index_;
+        if (invisible_finger_return_setting_ != SETTING_CV_TESTER) {
+          main_menu_index_ = invisible_finger_return_index_;
+        }
         settings_menu_ = false;
         invisible_finger_active_ = false;
         menu_entry_time_ = system_clock.milliseconds();

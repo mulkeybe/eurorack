@@ -139,7 +139,7 @@ const char* const zero_to_fifteen_values[] = {
     "  14",
     "  15"};
 
-const char* const zero_to_twenty_three_values[] = {
+const char* const zero_to_nineteen_values[] = {
     "   0",
     "   1",
     "   2",

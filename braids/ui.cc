@@ -57,9 +57,9 @@ void Ui::Init() {
   main_menu_index_ = 0;
   settings_menu_ = false;
   menu_entry_time_ = 0;
-  invisible_finger_return_setting_ = SETTING_OSCILLATOR_SHAPE;
-  invisible_finger_return_index_ = 0;
-  invisible_finger_active_ = false;
+  invisible_finger_return_setting_ = SETTING_AD_VCA;
+  invisible_finger_return_index_ = 1;
+  invisible_finger_active_ = true;
 }
 
 void Ui::Poll() {

@@ -380,7 +380,7 @@ void Ui::OnIncrement(const Event& e) {
       
     case MODE_MENU:
       {
-        const int16_t menu_size = settings_menu_ ? 11 : 14;
+        const int16_t menu_size = settings_menu_ ? 11 : 15;
         menu_entry_time_ = system_clock.milliseconds();
         setting_index_ += e.data;
 

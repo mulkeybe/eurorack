@@ -292,6 +292,11 @@ void Ui::OnClick() {
         menu_entry_time_ = system_clock.milliseconds();
       } else {
         mode_ = MODE_MENU;
+        if (setting_ == SETTING_OSCILLATOR_SHAPE && setting_index_ == 0) {
+          setting_index_ = 1;
+          setting_ = settings.setting_at_index(setting_index_, false);
+          main_menu_index_ = setting_index_;
+        }
         menu_entry_time_ = system_clock.milliseconds();
       }
       break;

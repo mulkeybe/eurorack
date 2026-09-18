@@ -143,14 +143,16 @@ void Ui::UpdateMenuTimeout() {
   if (now - menu_entry_time_ < timeout_ms[timeout]) return;
 
   if (mode_ == MODE_MENU || mode_ == MODE_EDIT) {
-    if (settings_menu_) {
-      // Settings always returns to CV TESTER.
-      invisible_finger_return_setting_ = SETTING_CV_TESTER;
-      invisible_finger_return_index_ = 13;
-    } else {
-      // Main Menu returns to its current position.
-      invisible_finger_return_setting_ = setting_;
-      invisible_finger_return_index_ = setting_index_;
+    if (!invisible_finger_active_) {
+      if (settings_menu_) {
+        // Settings always returns to CV TESTER.
+        invisible_finger_return_setting_ = SETTING_CV_TESTER;
+        invisible_finger_return_index_ = 13;
+      } else {
+        // Main Menu returns to its current position.
+        invisible_finger_return_setting_ = setting_;
+        invisible_finger_return_index_ = setting_index_;
+      }
     }
 
     invisible_finger_active_ = true;

@@ -54,6 +54,12 @@ using namespace stmlib;
 
 const size_t kNumBlocks = 4;
 const size_t kBlockSize = 24;
+const uint8_t decay_lut_indices[] = {
+    0, 4, 9, 14, 19, 25, 31, 37,
+    43, 50, 57, 64, 71, 78, 85, 92,
+    99, 106, 112, 117, 121, 124, 126, 127
+};
+
 
 MacroOscillator osc;
 Envelope envelope;
@@ -187,7 +193,7 @@ void RenderBlock() {
 #endif
   envelope.Update(
       settings.GetValue(SETTING_AD_ATTACK) * 8,
-      settings.GetValue(SETTING_AD_DECAY) * 8);
+      decay_lut_indices[settings.GetValue(SETTING_AD_DECAY)]);
   uint32_t ad_value = envelope.Render();
   
   if (settings.meta_modulation()) {

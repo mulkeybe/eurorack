@@ -372,7 +372,7 @@ const SettingMetadata Settings::metadata_[] = {
   { 0, 4, "SIGN", intensity_values },
   { 0, 2, "BRIG", brightness_values },
   { 0, 15, "\x8F""ATT", zero_to_fifteen_values },
-  { 0, 23, "\x8F""DEC", zero_to_twenty_three_values },
+  { 0, 19, "\x8F""DEC", zero_to_nineteen_values },
   { 0, 15, "\x8F""FM ", zero_to_fifteen_values },
   { 0, 15, "\x8F""COL", zero_to_fifteen_values },
   { 0, 1, "\x8F""VCA", boolean_values },

@@ -55,9 +55,9 @@ using namespace stmlib;
 const size_t kNumBlocks = 4;
 const size_t kBlockSize = 24;
 const uint8_t decay_lut_indices[] = {
-    0, 4, 9, 14, 19, 25, 31, 37,
-    43, 50, 57, 64, 71, 78, 85, 92,
-    99, 106, 112, 117, 121, 124, 126, 127
+    0, 12, 20, 28, 35, 42, 49, 55,
+    61, 67, 73, 79, 85, 91, 97, 103,
+    109, 115, 121, 127
 };
 
 

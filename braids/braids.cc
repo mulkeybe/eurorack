@@ -1,6 +1,6 @@
 // Copyright 2012 Olivier Gillet.
 //
-// Author: Olivier Gillet (pichenettes@mutable-instruments.net)
+// Author: Olivier Gillet (ol.gillet@gmail.com)
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,7 @@ using namespace stmlib;
 
 const size_t kNumBlocks = 4;
 const size_t kBlockSize = 24;
-const uint8_t decay_lut_indices[] = {
+const uint8_t env_lut_indices[] = {
     0, 12, 20, 28, 35, 42, 49, 55,
     61, 67, 73, 79, 85, 91, 97, 103,
     109, 115, 121, 127
@@ -192,8 +192,8 @@ void RenderBlock() {
   debug_pin.High();
 #endif
   envelope.Update(
-      settings.GetValue(SETTING_AD_ATTACK) * 8,
-      decay_lut_indices[settings.GetValue(SETTING_AD_DECAY)]);
+      env_lut_indices[settings.GetValue(SETTING_AD_ATTACK)],
+      env_lut_indices[settings.GetValue(SETTING_AD_DECAY)]);
   uint32_t ad_value = envelope.Render();
   
   if (settings.meta_modulation()) {

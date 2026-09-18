@@ -140,7 +140,6 @@ const char* const zero_to_fifteen_values[] = {
     "  15"};
 
 const char* const zero_to_nineteen_values[] = {
-    "   0",
     "   1",
     "   2",
     "   3",
@@ -160,10 +159,8 @@ const char* const zero_to_nineteen_values[] = {
     "  17",
     "  18",
     "  19",
-    "  20",
-    "  21",
-    "  22",
-    "  23"};
+    "  20"
+};
 
 const char* const algo_values[] = {
     "CSAW",
@@ -371,7 +368,7 @@ const SettingMetadata Settings::metadata_[] = {
   { 0, 4, "DRFT", intensity_values },
   { 0, 4, "SIGN", intensity_values },
   { 0, 2, "BRIG", brightness_values },
-  { 0, 15, "\x8F""ATT", zero_to_fifteen_values },
+  { 0, 19, "\x8F""ATT", zero_to_nineteen_values },
   { 0, 19, "\x8F""DEC", zero_to_nineteen_values },
   { 0, 15, "\x8F""FM ", zero_to_fifteen_values },
   { 0, 15, "\x8F""COL", zero_to_fifteen_values },

@@ -331,7 +331,7 @@ const char* const menu_timeout_values[] = {
 };
 
 const SettingMetadata Settings::metadata_[] = {
-  { 0, MACRO_OSC_SHAPE_LAST - 1, "WAV*", algo_values },
+  { 0, MACRO_OSC_SHAPE_LAST - 1, "*WAV", algo_values },
   { 0, RESOLUTION_LAST - 1, "BITS", bits_values },
   { 0, SAMPLE_RATE_LAST - 1, "RATE", rates_values },
   { 0, 15, "\x8F""TIM", zero_to_fifteen_values },
@@ -353,9 +353,10 @@ const SettingMetadata Settings::metadata_[] = {
   { 0, 1, "NVRT", boolean_values },
   { 0, 11, "ROOT", note_values },
   { 0, 4, "MTO ", menu_timeout_values },
-  { 0, 0, "CAL.", NULL },
   { 0, 0, "    ", NULL },  // Placeholder for CV tester
+  { 0, 0, "CAL.", NULL },
   { 0, 0, "v201", NULL },  // Placeholder for version string
+  { 0, 0, "+SET", NULL },   // Settings menu
 };
 
 /* static */
@@ -373,7 +374,7 @@ const Setting Settings::main_menu_order_[] = {
   SETTING_AD_FM,
   SETTING_AD_TIMBRE,
   SETTING_AD_COLOR,
-  SETTING_CV_TESTER,
+  SETTING_SETTINGS,
 };
 
 const Setting Settings::settings_menu_order_[] = {
@@ -385,6 +386,7 @@ const Setting Settings::settings_menu_order_[] = {
   SETTING_BRIGHTNESS,
   SETTING_MENU_TIMEOUT,
   SETTING_ENCODER_DIRECTION,
+  SETTING_CV_TESTER,
   SETTING_CALIBRATION,
   SETTING_VERSION,
 };

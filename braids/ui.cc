@@ -142,11 +142,13 @@ void Ui::UpdateMenuTimeout() {
 
   if (now - menu_entry_time_ < timeout_ms[timeout]) return;
 
+  if (setting_ == SETTING_CV_TESTER) return;
+
   if (mode_ == MODE_MENU || mode_ == MODE_EDIT) {
     if (!invisible_finger_active_) {
       if (settings_menu_) {
-        // Settings always returns to CV TESTER.
-        invisible_finger_return_setting_ = SETTING_CV_TESTER;
+        // Settings always returns to +SET.
+        invisible_finger_return_setting_ = SETTING_SETTINGS;
         invisible_finger_return_index_ = 13;
       } else {
         // Main Menu returns to its current position.
@@ -232,7 +234,7 @@ void Ui::OnLongClick() {
         quick_octave_changed_ = false;
       } else {
         invisible_finger_return_setting_ = settings_menu_
-            ? SETTING_CV_TESTER
+            ? SETTING_SETTINGS
             : setting_;
         invisible_finger_return_index_ = settings_menu_
             ? 13
@@ -256,7 +258,7 @@ void Ui::OnLongClick() {
         settings.Save();
       } else {
         invisible_finger_return_setting_ = settings_menu_
-            ? SETTING_CV_TESTER
+            ? SETTING_SETTINGS
             : setting_;
         invisible_finger_return_index_ = settings_menu_
             ? 13
@@ -301,7 +303,7 @@ void Ui::OnClick() {
         setting_ = settings.setting_at_index(setting_index_, false);
         mode_ = MODE_MENU;
         menu_entry_time_ = system_clock.milliseconds();
-      } else if (!settings_menu_ && setting_ == SETTING_CV_TESTER) {
+      } else if (!settings_menu_ && setting_ == SETTING_SETTINGS) {
         main_menu_index_ = setting_index_;
         settings_menu_ = true;
         setting_index_ = 0;  // TSRC
@@ -373,7 +375,7 @@ void Ui::OnIncrement(const Event& e) {
       
     case MODE_MENU:
       {
-        const int16_t menu_size = settings_menu_ ? 10 : 14;
+        const int16_t menu_size = settings_menu_ ? 11 : 14;
         menu_entry_time_ = system_clock.milliseconds();
         setting_index_ += e.data;
 
@@ -393,7 +395,7 @@ void Ui::OnIncrement(const Event& e) {
         }
 
         if (settings_menu_ && setting_index_ == -1) {
-          setting_ = SETTING_CV_TESTER;
+          setting_ = SETTING_SETTINGS;
         } else {
           setting_ = settings.setting_at_index(setting_index_, settings_menu_);
         }

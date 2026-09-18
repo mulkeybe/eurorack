@@ -348,7 +348,7 @@ const SettingMetadata Settings::metadata_[] = {
   { 0, 15, "\x8F""ATT", zero_to_fifteen_values },
   { 0, 15, "\x8F""DEC", zero_to_fifteen_values },
   { 0, 15, "\x8F""FM ", zero_to_fifteen_values },
-  { 0, 15, "COLR", zero_to_fifteen_values },
+  { 0, 15, "\x8F""COL", zero_to_fifteen_values },
   { 0, 1, "\x8F""VCA", boolean_values },
   { 0, 1, "NVRT", boolean_values },
   { 0, 11, "ROOT", note_values },
